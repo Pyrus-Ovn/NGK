@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title> webClient </title>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/3.5.3/js/tabulator.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/3.5.3/css/tabulator.min.css">
+	</link>
+
+	<script type="text/javascript">
+
+		//Route for chat
+		const socket = new WebSocket('ws://localhost:8080/chat'); //Websocket server address url
+		socket.addEventListener('open', function (event) {
+			//Sending a message to the web socket server...
+			socket.send('Hello Server!');
+		});
+		//Listen for messages
+		socket.addEventListener('message', function (event) {
+			//Logic for listen message.
+			console.log('Message from server: ', event.data);                                                                               
+				document.getElementById("wsupdate").value = event.data;
+		});
+		
+		//Fetch all entrie from server API
+		function getData() {
+			axios.get('http://localhost:8080')
+				.then(response => {
+					setTable(response.data);
+				}).catch(error => alert('Get from server failed'));
+		}
+
+		//Update entry on server
+		function updateData() {
+			var id = (parseInt(document.getElementById("id").value));
+			var url = 'http://localhost:8080/id/' + id
+			axios.put(url,
+				{
+					"id": (document.getElementById("id").value),
+					"dato": document.getElementById("dato").value,
+					"klokkeslaet": document.getElementById("klokkeslaet").value,
+					"sted":
+					{
+						"Navn": document.getElementById("Navn").value,
+						"Lat": (document.getElementById("Lat").value),
+						"Lon": (document.getElementById("Lon").value)
+					},
+					"temperatur": document.getElementById("temperatur").value,
+					"luftfugtighed": document.getElementById("luftfugtighed").value
+				}
+			)
+				.then(response => { }).catch(error => alert('Putting to server failed'));
+		}
+
+		//Add entry to the server
+		function sendData() {
+			axios.post('http://localhost:8080',
+				{
+					"id": (document.getElementById("id").value),
+					"dato": document.getElementById("dato").value,
+					"klokkeslaet": document.getElementById("klokkeslaet").value,
+					"sted":
+					{
+						"Navn": document.getElementById("Navn").value,
+						"Lat": (document.getElementById("Lat").value),
+						"Lon": (document.getElementById("Lon").value)
+					},
+					"temperatur": document.getElementById("temperatur").value,
+					"luftfugtighed": document.getElementById("luftfugtighed").value
+				})
+				.then(response => {
+
+				})
+				.catch(error => {
+					console.error(error);
+					alert('Posting to server failed');
+				});
+		}
+		
+
+		function setTable(data) {
+		$("#table").tabulator("setData", data);
+		}
+	</script>
+</head>
+
+<body>
+
+	<h2>weatherDataInput</h2>
+	<p>id : <input id="id" type="text"></p>
+	<p>dato : <input id="dato" type="text">
+	</p>
+	<p>klokkeslaet : <input id="klokkeslaet" type="text">
+	</p>
+	<p>Navn : <input id="Navn" type="text">
+		</p>
+	<p>Lat : <input id="Lat" type="number">
+		</p>
+	<p>Lon : <input id="Lon" type="number">
+		</p>
+	<p>temperatur : <input id="temperatur" type="text">
+		</p>
+	<p>humidity : <input id="luftfugtighed" type="text">
+		</p>
+<p id="wsupdate"></p>
+		<input type="button" onclick="getData()" value="Get all entries">
+		<input type="button" onclick="updateData()" value="Update entry">
+		<input type="button" onclick="sendData()" value="Add entry">
+		<div id="table">
+			<script>
+						$("#table").tabulator({
+				//Table for html page 
+				layout: "fitDataFill",
+				height: "311px",
+				columns: [{
+					title: "ID",
+					field: "id"
+				},
+				{
+					title: "Date",
+					field: "dato"
+				},
+				{
+					title: "Time",
+					field: "klokkeslaet"
+				},
+				{
+					title: "Place",
+					field: "sted.Navn",
+					align: "center"
+				},
+				{
+					title: "Place",
+					field: "sted.Lat"
+				},
+				{
+					title: "Place",
+					field: "sted.Lon"
+				},
+				{
+					title: "Temperature",
+					field: "temperatur"
+				},
+				{
+					title: "Humidity",
+					field: "luftfugtighed",
+					formatter: "html"
+				},
+				],
+			});
+	
+			</script>
+</body>
+
+</html>
